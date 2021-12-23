@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-git clone https://github.com/gilzow/source-operations.git
+git clone https://github.com/platformsh/source-operations.git
 # adds a symlink from our main executable to a valid, writable directory in PATH
 IFS=':' read -ra PATHS <<< "${PATH}"
 for dir in "${PATHS[@]}"; do
