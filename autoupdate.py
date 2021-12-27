@@ -23,7 +23,7 @@ logging.addLevelName(logging.WARNING, "%s%s%s" % (CWARN, logging.getLevelName(lo
 logging.addLevelName(logging.ERROR, "%s%s%s" % (CWARN, logging.getLevelName(logging.ERROR), CRESET))
 
 
-def outputError(cmd, output):
+def output_error(cmd, output):
     logging.warning("{}{}{}{} command failed!{}".format(CBOLD, cmd, CRESET, CWARN, CRESET))
     logging.info("See the following output:")
     logging.info(output)
@@ -82,7 +82,7 @@ def main():
     appfiles = find_dependency_files(appPath)
 
     if 1 > len(appfiles):
-        return outputError('Gathering dependency definition file(s)',
+        return output_error('Gathering dependency definition file(s)',
                            "I was unable to locate any dependency definition files")
 
     doCommit = False
@@ -99,7 +99,7 @@ def main():
         output, error = procUpdate.communicate()
 
         if 0 != procUpdate.returncode:
-            return outputError(updaters[dependencyFile]['command'], error)
+            return output_error(updaters[dependencyFile]['command'], error)
         # now let's see if we have updates
         output = error = None
         logging.info("Seeing if there are any updates to commit.")
@@ -124,7 +124,7 @@ def main():
             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         output, error = procAdd.communicate()
         if 0 != procAdd.returncode:
-            return outputError('git add', error)
+            return output_error('git add', error)
         else:
             output = error = None
             gitCommitMsg += '\nAdded updated {}'.format(lockFileLocation)
@@ -137,7 +137,7 @@ def main():
         output, error = procCommit.communicate()
 
         if 0 != procCommit.returncode:
-            return outputError('git commit', error)
+            return output_error('git commit', error)
         else:
             logging.info("Changes successfully committed.")
             return True
