@@ -83,7 +83,7 @@ def main():
 
     if 1 > len(appfiles):
         return output_error('Gathering dependency definition file(s)',
-                           "I was unable to locate any dependency definition files")
+                            "I was unable to locate any dependency definition files")
 
     doCommit = False
 
@@ -93,7 +93,8 @@ def main():
         logging.info("Found a {} file...".format(dependencyFile))
         logging.info("Running {}".format(updaters[dependencyFile]['command']))
         # run the update process
-        procUpdate = subprocess.Popen(updaters[dependencyFile]['command'], shell=True, cwd=os.path.join(appPath, dependencyFilePath),
+        procUpdate = subprocess.Popen(updaters[dependencyFile]['command'], shell=True,
+                                      cwd=os.path.join(appPath, dependencyFilePath),
                                       stdout=subprocess.PIPE,
                                       stderr=subprocess.PIPE)
         output, error = procUpdate.communicate()
