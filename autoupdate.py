@@ -5,7 +5,7 @@ import os
 import logging
 from logging import critical, error, info, warning, debug
 import subprocess
-
+APPVERSION='0.2.0'
 CWORKING = '\033[34;1m'
 # The 'color' we use to reset the colors
 # @todo for some reason this is NOT resetting the colors after use
@@ -45,37 +45,46 @@ def main():
         'yarn.lock': {'command': 'yarn upgrade', 'lock': 'yarn.lock'}
     }
 
-    logging.info("Beginning update process...")
+    appFile='.platform.app.yaml'
+
+    def find_dependency_files(path):
+        updateFiles = []
+        for (dirpath, dirnames, filenames) in os.walk(path):
+            # do we have any updater files in this directory?
+            # @todo is there a way to combine this with the platform.app.yaml check?
+            toUpdate = list(set(filenames) & set(updaters.keys()))
+
+            if appFile in filenames and 0 < len(toUpdate):
+                updateFiles += list(map(lambda file: os.path.join(dirpath, file), toUpdate))
+
+        return updateFiles
+
+
+    logging.info("Beginning update process using version {} of updater...".format(APPVERSION))
     # get the path to our app. yes, it's different. in a source op container, we're in a different location
     appPath = os.getenv('PLATFORM_SOURCE_DIR')
 
-    # grab the list of files in the app root
-    # @todo for now this only supports single apps. we'll need to build in multiapp support
-    appfiles = [file for file in os.listdir(appPath) if os.path.isfile(file) and file in updaters.keys()]
+    # grab the list of dependency management files in the app project
+    appfiles = find_dependency_files(appPath)
 
     if 1 > len(appfiles):
         return outputError('Gathering dependency definition file(s)',
                            "I was unable to locate any dependency definition files")
 
-    actions = {}
     doCommit = False
 
-    for file in appfiles:
-        # @todo just to be safe, we should check to see if updaters has an entry for the file name before we use it
-        actions[file] = updaters[file]
-        # @todo later this needs to be updated to the *relative* directory location where we find the file(s)
-        actions[file]['path'] = './'
-
-    for file, action in actions.items():
-        logging.info("Found a {} file...".format(file))
-        logging.info("Running {}".format(action['command']))
+    for fileFull in appfiles:
+        # split the file into the actual file & path
+        dependencyFilePath, dependencyFile = os.path.split(fileFull)
+        logging.info("Found a {} file...".format(dependencyFile))
+        logging.info("Running {}".format(updaters[dependencyFile]['command']))
         # run the update process
-        procUpdate = subprocess.Popen(action['command'], shell=True, cwd=action['path'], stdout=subprocess.PIPE,
+        procUpdate = subprocess.Popen(updaters[dependencyFile]['command'], shell=True, cwd=dependencyFilePath, stdout=subprocess.PIPE,
                                       stderr=subprocess.PIPE)
         output, error = procUpdate.communicate()
 
         if 0 != procUpdate.returncode:
-            return outputError(action['command'], error)
+            return outputError(updaters[dependencyFile]['command'], error)
         # now let's see if we have updates
         output = error = None
         logging.info("Seeing if there are any updates to commit.")
@@ -83,7 +92,7 @@ def main():
                                       stderr=subprocess.PIPE)
         output, error = procStatus.communicate()
 
-        if not output or action['lock'] not in output:
+        if not output or updaters[dependencyFile]['lock'] not in output:
             logging.info("No updates available, nothing to commit. Exiting...")
             # no updates so nothing to add, not a failure, but we are done
             return True
@@ -91,10 +100,10 @@ def main():
         # one more, just need to add the file
         output = error = None
         # we don't really care about the path if it's in the current directory
-        lockPath = (action['path'], '')[action['path'] == './']
-        logging.info("Updates are available, adding {0}{1}...".format(lockPath, action['lock']))
+        lockPath = (dependencyFilePath, '')[dependencyFilePath == './']
+        logging.info("Updates are available, adding {0}{1}...".format(lockPath, updaters[dependencyFile]['lock']))
         procAdd = subprocess.Popen(
-            'git add {0}{1}'.format(lockPath, action['lock']), shell=True,
+            'git add {0}{1}'.format(lockPath, updaters[dependencyFile]['lock']), shell=True,
             cwd=appPath,
             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         output, error = procAdd.communicate()
