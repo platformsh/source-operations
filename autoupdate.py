@@ -6,7 +6,7 @@ import logging
 from logging import critical, error, info, warning, debug
 import subprocess
 
-APPVERSION = '0.2.0'
+APPVERSION = '0.2.1'
 CWORKING = '\033[34;1m'
 # The 'color' we use to reset the colors
 # @todo for some reason this is NOT resetting the colors after use
@@ -50,9 +50,9 @@ def main():
     # @todo should this be a configurable message?
     gitCommitMsg = 'Auto dependency updates via source operation'
 
-    def find_dependency_files(path):
+    def find_dependency_files(projectPath):
         updateFiles = []
-        for (dirpath, dirnames, filenames) in os.walk(path):
+        for (dirpath, dirnames, filenames) in os.walk(projectPath):
             # do we have any updater files in this directory?
             # @todo is there a way to combine this with the platform.app.yaml check?
             toUpdate = list(set(filenames) & set(updaters.keys()))
@@ -60,7 +60,7 @@ def main():
             if appFile in filenames and 0 < len(toUpdate):
                 # dirpath is the full path to the file, and we only want the relative path. if the two are equal, we
                 # dont even need it
-                if dirpath == path:
+                if dirpath == projectPath:
                     dirpath = ''
                 else:
                     # otherwise we just want the relative bit
@@ -68,7 +68,7 @@ def main():
                     # path to composer.json: /mnt/source/app/drupal
                     # We only want to record `drupal`
                     # note, to add a cross-os-compatible ending directory slash, you path.join the path with empty. :shrug:
-                    dirpath.replace(os.path.join(dirpath, ''), '')
+                    dirpath = dirpath.replace(os.path.join(projectPath, ''), '')
 
                 updateFiles += list(map(lambda file: os.path.join(dirpath, file), toUpdate))
 
