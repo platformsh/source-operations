@@ -5,7 +5,8 @@ import os
 import logging
 from logging import critical, error, info, warning, debug
 import subprocess
-APPVERSION='0.2.0'
+
+APPVERSION = '0.2.0'
 CWORKING = '\033[34;1m'
 # The 'color' we use to reset the colors
 # @todo for some reason this is NOT resetting the colors after use
@@ -45,7 +46,9 @@ def main():
         'yarn.lock': {'command': 'yarn upgrade', 'lock': 'yarn.lock'}
     }
 
-    appFile='.platform.app.yaml'
+    appFile = '.platform.app.yaml'
+    # @todo should this be a configurable message?
+    gitCommitMsg = 'Auto dependency updates via source operation'
 
     def find_dependency_files(path):
         updateFiles = []
@@ -55,14 +58,14 @@ def main():
             toUpdate = list(set(filenames) & set(updaters.keys()))
 
             if appFile in filenames and 0 < len(toUpdate):
-                updateFiles += list(map(lambda file: os.path.join(dirpath, file), toUpdate))
+                # dirpath is the full path to the file, and we only want the relative path
+                updateFiles += list(map(lambda file: os.path.join(dirpath.replace(path + '/', ''), file), toUpdate))
 
         return updateFiles
 
-
     logging.info("Beginning update process using version {} of updater...".format(APPVERSION))
     # get the path to our app. yes, it's different. in a source op container, we're in a different location
-    appPath = os.getenv('PLATFORM_SOURCE_DIR')
+    appPath = os.getenv('PLATFORM_SOURCE_DIR', os.getcwd())
 
     # grab the list of dependency management files in the app project
     appfiles = find_dependency_files(appPath)
@@ -74,12 +77,13 @@ def main():
     doCommit = False
 
     for fileFull in appfiles:
-        # split the file into the actual file & path
+        # split the file into the actual file & relative path
         dependencyFilePath, dependencyFile = os.path.split(fileFull)
         logging.info("Found a {} file...".format(dependencyFile))
         logging.info("Running {}".format(updaters[dependencyFile]['command']))
         # run the update process
-        procUpdate = subprocess.Popen(updaters[dependencyFile]['command'], shell=True, cwd=dependencyFilePath, stdout=subprocess.PIPE,
+        procUpdate = subprocess.Popen(updaters[dependencyFile]['command'], shell=True, cwd=os.path.join(appPath, dependencyFilePath),
+                                      stdout=subprocess.PIPE,
                                       stderr=subprocess.PIPE)
         output, error = procUpdate.communicate()
 
@@ -101,9 +105,10 @@ def main():
         output = error = None
         # we don't really care about the path if it's in the current directory
         lockPath = (dependencyFilePath, '')[dependencyFilePath == './']
-        logging.info("Updates are available, adding {0}{1}...".format(lockPath, updaters[dependencyFile]['lock']))
+        lockFileLocation = os.path.join(dependencyFilePath, updaters[dependencyFile]['lock'])
+        logging.info("Updates are available, adding {}...".format(lockFileLocation))
         procAdd = subprocess.Popen(
-            'git add {0}{1}'.format(lockPath, updaters[dependencyFile]['lock']), shell=True,
+            'git add {}'.format(lockFileLocation), shell=True,
             cwd=appPath,
             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         output, error = procAdd.communicate()
@@ -111,12 +116,11 @@ def main():
             return outputError('git add', error)
         else:
             output = error = None
+            gitCommitMsg += '\nAdded updated {}'.format(lockFileLocation)
             doCommit = True
 
     if doCommit:
-        # @todo should this message be configurable?
-        message = "Auto dependency updates via source operation"
-        cmd = 'git commit -m "{}"'.format(message)
+        cmd = 'git commit -m "{}"'.format(gitCommitMsg)
         procCommit = subprocess.Popen(cmd, shell=True, cwd=appPath, stdout=subprocess.PIPE,
                                       stderr=subprocess.PIPE)
         output, error = procCommit.communicate()
