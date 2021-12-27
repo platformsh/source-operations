@@ -58,8 +58,19 @@ def main():
             toUpdate = list(set(filenames) & set(updaters.keys()))
 
             if appFile in filenames and 0 < len(toUpdate):
-                # dirpath is the full path to the file, and we only want the relative path
-                updateFiles += list(map(lambda file: os.path.join(dirpath.replace(path + '/', ''), file), toUpdate))
+                # dirpath is the full path to the file, and we only want the relative path. if the two are equal, we
+                # dont even need it
+                if dirpath == path:
+                    dirpath = ''
+                else:
+                    # otherwise we just want the relative bit
+                    # full path location: /mnt/source/app
+                    # path to composer.json: /mnt/source/app/drupal
+                    # We only want to record `drupal`
+                    # note, to add a cross-os-compatible ending directory slash, you path.join the path with empty. :shrug:
+                    dirpath.replace(os.path.join(dirpath, ''), '')
+
+                updateFiles += list(map(lambda file: os.path.join(dirpath, file), toUpdate))
 
         return updateFiles
 
