@@ -1,9 +1,14 @@
 #!/usr/bin/env bash
-# This wont work in dash because `<(` is a bashism
-# bash <(curl -fsS https://raw.githubusercontent.com/gilzow/source-operations/main/setup.sh) autoprsourceop
-# so you're going to have to do
+# This wont work in dash because dash doesn't support process substitution:
+# https://mywiki.wooledge.org/ProcessSubstitution
+# bash <(curl -fsS https://raw.githubusercontent.com/gilzow/source-operations/main/setup.sh) trigger-sopupdate
+# so we're going to have to do either
 # bash -c "bash <(curl -fsS https://raw.githubusercontent.com/gilzow/source-operations/main/setup.sh) trigger-sopupdate"
+# where we call bash directly and pass it the commands we need to run OR we can use named pipes to get around the limitation
 # dash> curl -fsS https://raw.githubusercontent.com/gilzow/source-operations/main/setup.sh | { bash /dev/fd/3 trigger-sopupdate; } 3<&0
+# see https://mywiki.wooledge.org/NamedPipes
+# We pipe the output of curl to a compound command, but duplicate the stdout to named pipe 3, which is then available
+# inside the compound command as /dev/fd/3 where we can pass it to bash and include our command argument
 # alternatively, we could scan PATH for an `.environment` file and then cat our new export of PATH to the bottom
 
 # https://github.com/gilzow/source-operations.git
