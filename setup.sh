@@ -3,6 +3,7 @@
 # bash <(curl -fsS https://raw.githubusercontent.com/gilzow/source-operations/main/setup.sh) autoprsourceop
 # so you're going to have to do
 # bash -c "bash <(curl -fsS https://raw.githubusercontent.com/gilzow/source-operations/main/setup.sh) trigger-sopupdate"
+# dash> curl -fsS https://raw.githubusercontent.com/gilzow/source-operations/main/setup.sh | { bash /dev/fd/3 trigger-sopupdate; } 3<&0
 # alternatively, we could scan PATH for an `.environment` file and then cat our new export of PATH to the bottom
 
 # https://github.com/gilzow/source-operations.git
