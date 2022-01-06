@@ -1,15 +1,17 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import os
 import sys
-from autoupdate import main as autoupdatemain
 
 
 def main():
     if 2 > len(sys.argv):
         return False
-
-    if "autoupdate" == sys.argv[1]:
+    if "sop-autoupdate" == sys.argv[1]:
+        from autoupdate import main as autoupdatemain
         autoupdatemain()
+    elif "trigger-sopupdate" == sys.argv[1]:
+        from cron_trigger_autoupdate import trigger_autoupdate
+        trigger_autoupdate()
 
 
 if __name__ == '__main__':
