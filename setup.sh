@@ -20,7 +20,7 @@ tmpDir="/tmp"
 dirSourceOps="${tmpDir}/source-operations"
 
 #check and see if we already have the repo cloned in /tmp
-# we dont really care what the status us other than does it exist, hence the &>/dev/null
+# we dont really care what the status is other than does it exist, hence the &>/dev/null
 git -C "${dirSourceOps}" status &>/dev/null
 gitCheck=$?
 
