@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# $ bash <(curl -fsS https://raw.githubusercontent.com/gilzow/source-operations/main/setup.sh) autoprsourceop
+# $ bash <(curl -fsS https://raw.githubusercontent.com/platformsh/source-operations/main/setup.sh) autoprsourceop
 # https://console.platform.sh/paul-gilzowatplatform-sh/rdj2cferlaluk/update/log/sqydnupxgbjqe
 import os
 import sys
