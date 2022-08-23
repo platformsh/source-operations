@@ -40,3 +40,5 @@ fi
 export PATH="${dirSourceOps}:${PATH}"
 
 sourceOp "${1:-'nothing'}"
+#return the exit code from sourceOp
+exit $?
