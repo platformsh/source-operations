@@ -58,6 +58,14 @@ def trigger_autoupdate():
         else:
             logging.info('{}{}{}'.format(CBOLD, PSH_COMMON_MESSAGES['psh_cli']['success_message'], CRESET))
 
+        # But is the cli token valid?
+        logging.info(PSH_COMMON_MESSAGES['psh_cli_validity']['event'])
+        if not psh_utility.verifyPshCliTokenValidity():
+            outputError(PSH_COMMON_MESSAGES['psh_cli_validity']['event'], PSH_COMMON_MESSAGES['psh_cli_validity']['fail_message'])
+            return False
+        else:
+            logging.info('{}{}{}'.format(CBOLD, PSH_COMMON_MESSAGES['psh_cli_validity']['success_message'], CRESET))
+
         # now we need to get our production branch name. updateBranch and sourceOpName have defaults; only with the
         # productionBranch may we encounter a fatal error
         if not (productionBranchName := getProductionBranchName()):
