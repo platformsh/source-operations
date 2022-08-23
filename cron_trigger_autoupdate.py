@@ -6,7 +6,7 @@ import sys
 import logging
 from logging import critical, error, info, warning, debug
 import psh_utility
-from psh_utility import PSH_COMMON_MESSAGES
+from psh_utility import PSH_COMMON_MESSAGES, SOURCE_OP_TOOLS_VERSION
 from psh_logging import outputError, CBOLD, CRESET, CWARN
 
 DEFAULT_UPDATE_BRANCH = "update"
@@ -38,6 +38,7 @@ def trigger_autoupdate():
         :return: bool
         """
         updateBranchPreviousStatus = "inactive"
+        logging.info("Using Source Ops Toolkit v{}".format(SOURCE_OP_TOOLS_VERSION))
         logging.info("Beginning set up to perform the source operation update...")
 
         # Do we have a PSH CLI Token set up?
