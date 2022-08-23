@@ -6,7 +6,7 @@ import sys
 import logging
 from logging import critical, error, info, warning, debug
 import psh_utility
-from psh_utility import PSH_COMMON_MESSAGES
+from psh_utility import PSH_COMMON_MESSAGES, SOURCE_OP_TOOLS_VERSION
 from psh_logging import outputError, CBOLD, CRESET, CWARN
 
 DEFAULT_UPDATE_BRANCH = "update"
@@ -38,6 +38,7 @@ def trigger_autoupdate():
         :return: bool
         """
         updateBranchPreviousStatus = "inactive"
+        logging.info("Using Source Ops Toolkit v{}".format(SOURCE_OP_TOOLS_VERSION))
         logging.info("Beginning set up to perform the source operation update...")
 
         # Do we have a PSH CLI Token set up?
@@ -56,6 +57,14 @@ def trigger_autoupdate():
             return False
         else:
             logging.info('{}{}{}'.format(CBOLD, PSH_COMMON_MESSAGES['psh_cli']['success_message'], CRESET))
+
+        # But is the cli token valid?
+        logging.info(PSH_COMMON_MESSAGES['psh_cli_validity']['event'])
+        if not psh_utility.verifyPshCliTokenValidity():
+            outputError(PSH_COMMON_MESSAGES['psh_cli_validity']['event'], PSH_COMMON_MESSAGES['psh_cli_validity']['fail_message'])
+            return False
+        else:
+            logging.info('{}{}{}'.format(CBOLD, PSH_COMMON_MESSAGES['psh_cli_validity']['success_message'], CRESET))
 
         # now we need to get our production branch name. updateBranch and sourceOpName have defaults; only with the
         # productionBranch may we encounter a fatal error
@@ -128,7 +137,7 @@ def trigger_autoupdate():
             logging.info("{} branch was inactive previously so we will deactivate it.".format(updateBranchName))
             deactivateUpdateBranch(updateBranchName)
         else:
-            logging.info("{} was previously active so we'll leave it alone.".format(updateBranchName))
+            logging.info("Branch {} was previously active so we'll leave it alone.".format(updateBranchName))
 
         logging.info("{}{}{}".format(CBOLD, "Auto update of {} environment complete.".format(updateBranchName), CRESET))
         return True
@@ -270,7 +279,7 @@ def trigger_autoupdate():
         """
         logging.info(
             "Running source operation '{}' against environment '{}'... ".format(sourceoperation, targetEnvironment))
-        command = "platform source-operation:run {} --environment {} --wait 2>/dev/null".format(sourceoperation,
+        command = "platform source-operation:run {} --environment {} --wait".format(sourceoperation,
                                                                                                 targetEnvironment)
         sourceOpRun = psh_utility.runCommand(command)
 
@@ -393,4 +402,4 @@ def trigger_autoupdate():
         return syncRun['result']
 
     # fire off our workhorse function
-    inner_trigger_autoupdate()
+    return inner_trigger_autoupdate()

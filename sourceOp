@@ -4,14 +4,19 @@ import sys
 
 
 def main():
+    trigReturn = 255
     if 2 > len(sys.argv):
-        return False
+        # @todo we should consolidate the exit codes into constants so we can use them for debugging
+        sys.exit(5)
     if "sop-autoupdate" == sys.argv[1]:
         from autoupdate import main as autoupdatemain
-        autoupdatemain()
+        trigReturn = autoupdatemain()
     elif "trigger-sopupdate" == sys.argv[1]:
         from cron_trigger_autoupdate import trigger_autoupdate
-        trigger_autoupdate()
+        trigReturn = trigger_autoupdate()
+
+    # we have to flip the exit codes: 0 == success, 1 == failure
+    sys.exit(int(trigReturn is False))
 
 
 if __name__ == '__main__':

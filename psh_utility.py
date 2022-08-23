@@ -4,6 +4,7 @@ import os
 import subprocess
 from psh_logging import outputError
 
+SOURCE_OP_TOOLS_VERSION = '0.2.5'
 PSH_COMMON_MESSAGES = {
     'psh_cli': {
         'event': 'Checking for the Platform.sh CLI tool',
@@ -20,6 +21,14 @@ PSH_COMMON_MESSAGES = {
         API token before I can run platform.sh cli commands
         """,
         'success_message': 'Platform.sh CLI API token is available.'
+    },
+    'psh_cli_validity': {
+        'event': 'Checking for the Platform.sh CLI API token validity',
+        'fail_message': """
+    It appears that the 'PLATFORMSH_CLI_TOKEN' is not valid, or is incorrect. I will need a valid
+    API token before I can run platform.sh cli commands
+    """,
+        'success_message': 'Platform.sh CLI API token is valid.'
     }
 }
 
@@ -63,3 +72,9 @@ def verifyPshCliToken():
         return False
     else:
         return True
+
+
+def verifyPshCliTokenValidity():
+    command = "platform auth:info > /dev/null 2>&1"
+    validityResult = runCommand(command)
+    return validityResult['result']

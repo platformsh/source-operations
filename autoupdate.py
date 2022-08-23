@@ -3,10 +3,7 @@ import logging
 import os
 
 from psh_logging import outputError
-from psh_utility import runCommand
-
-APPVERSION = '0.2.2'
-
+from psh_utility import runCommand, SOURCE_OP_TOOLS_VERSION
 
 def main():
     """
@@ -50,7 +47,7 @@ def main():
 
         return updateFiles
 
-    logging.info("Beginning update process using version {} of updater...".format(APPVERSION))
+    logging.info("Beginning update process using version v{} of Source Ops Toolkit...".format(SOURCE_OP_TOOLS_VERSION))
     # get the path to our app. yes, it's different. in a source op container, we're in a different location
     appPath = os.getenv('PLATFORM_SOURCE_DIR', os.getcwd())
 
