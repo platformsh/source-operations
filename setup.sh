@@ -15,9 +15,17 @@
 
 # Repo for our source ops support scripts
 gitSourceOps="https://github.com/platformsh/source-operations.git"
-# A writable location where we can store things
-tmpDir="/tmp"
+# A writable location where we can store things: cache directory on a psh environment, TMPDIR in most systems, or fallback
+tmpDir=${PLATFORM_CACHE_DIR:-${TMPDIR:-/tmp}}
 dirSourceOps="${tmpDir}/source-operations"
+
+#Does the temp directory exist and more importantly, can we write to it?
+if [ ! -d "${tmpDir}" ] || [ ! -w "${tmpDir}" ]; then
+  printf "The directory %s either doesn't exist, or I am unable to write to it. Exiting.\n" "${tmpDir}"
+  exit 1
+else
+  printf "Using directory %s for the toolkit.\n" "${dirSourceOps}"
+fi
 
 #check and see if we already have the repo cloned in /tmp
 # we dont really care what the status is other than does it exist, hence the &>/dev/null
