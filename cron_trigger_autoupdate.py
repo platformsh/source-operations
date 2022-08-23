@@ -402,4 +402,4 @@ def trigger_autoupdate():
         return syncRun['result']
 
     # fire off our workhorse function
-    inner_trigger_autoupdate()
+    return inner_trigger_autoupdate()
