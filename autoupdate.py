@@ -63,13 +63,23 @@ def main():
     for fileFull in appfiles:
         # split the file into the actual file & relative path
         dependencyFilePath, dependencyFile = os.path.split(fileFull)
+        # When running `pipenv update` the update is being run inside a virtualenv. The default is to run with user set
+        # to `true` which results in the error
+        # `Can not perform a '--user' install. User site-packages are not visible in this virtualenv`
+        # We'll need to set the config for user to false before running the update
+        # @see 
+        if 'Pipfile' == dependencyFile:
+            rCommand = 'export PIP_USER=0;' + updaters[dependencyFile]['command']
+        else:
+            rCommand = updaters[dependencyFile]['command']
+
         logging.info("Found a {} file...".format(dependencyFile))
-        logging.info("Running {}".format(updaters[dependencyFile]['command']))
+        logging.info("Running {}".format(rCommand))
         # run the update process
-        procUpdate = runCommand(updaters[dependencyFile]['command'], os.path.join(appPath, dependencyFilePath))
+        procUpdate = runCommand(rCommand, os.path.join(appPath, dependencyFilePath))
 
         if not procUpdate['result']:
-            return outputError(updaters[dependencyFile]['command'], procUpdate['message'])
+            return outputError(rCommand, procUpdate['message'])
         # now let's see if we have updates
         logging.info("Seeing if there are any updates to commit.")
         procStatus = runCommand('git status --porcelain=1', appPath)
