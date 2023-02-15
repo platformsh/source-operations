@@ -13,7 +13,7 @@ def main():
     updaters = {
         'composer.json': {'command': 'composer update', 'lock': 'composer.lock'},
         'Pipfile': {'command': 'pipenv update', 'lock': 'Pipfile.lock'},
-        'pyproject.toml': {'command': 'poetry update', 'lock': 'poetry.lock'},
+        'poetry.lock': {'command': 'poetry update', 'lock': 'poetry.lock'},
         'Gemfile': {'command': 'bundle update --all', 'lock': 'Gemfile.lock'},
         'go.mod': {'command': 'go get -u all', 'lock': 'go.sum'},
         'package-lock.json': {'command': 'npm update', 'lock': 'package-lock.json'},
