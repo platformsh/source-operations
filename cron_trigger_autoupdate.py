@@ -107,8 +107,8 @@ def trigger_autoupdate():
                     message += "manually push the branch '{}' to your remote git repository.".format(updateBranchName)
                     logging.info(message)
 
-                if not createBranch(updateBranchName, productionBranchName):
-                    return False
+            if not createBranch(updateBranchName, productionBranchName):
+                return False
         else:
             if "activate" == updateBranchAction:
                 if not activateBranch(updateBranchName):
