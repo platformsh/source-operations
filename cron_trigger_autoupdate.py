@@ -68,7 +68,8 @@ def trigger_autoupdate():
 
         # now we need to get our production branch name. updateBranch and sourceOpName have defaults; only with the
         # productionBranch may we encounter a fatal error
-        if not (productionBranchName := getProductionBranchName()):
+        productionBranchName = getProductionBranchName()
+        if not (productionBranchName):
             return False
 
         updateBranchName = getUpdateBranchName()
