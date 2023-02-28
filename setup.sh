@@ -44,6 +44,11 @@ else
   printf " Done.\n"
 fi
 
+# temporary change to allow testing of branch
+printf "Switching to branch enhance the prunes... "
+git -C "${dirSourceOps}" checkout -b prunes origin/enhance/15-prune-branches
+printf "Done.\n"
+
 # Add our directory to PATH so we can call it
 export PATH="${dirSourceOps}:${PATH}"
 
