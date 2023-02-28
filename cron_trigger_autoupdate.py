@@ -144,6 +144,9 @@ def trigger_autoupdate():
             logging.info("Branch {} was previously active so we'll leave it alone.".format(updateBranchName))
 
         if reactivatePruneBranches:
+            message = "'prune_branches' was enabled previously; I had to disable it temporarily. Attempting to "
+            message += " re-enable it now..."
+            logging.info(message)
             # we need to reactivate the prune branches setting
             if not enableGitIntPruneBranches(integrationID):
                 event = "Trying to update 'prune_branches' to true on git integration {}".format(integrationID)
