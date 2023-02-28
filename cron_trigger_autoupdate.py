@@ -62,7 +62,8 @@ def trigger_autoupdate():
         # But is the cli token valid?
         logging.info(PSH_COMMON_MESSAGES['psh_cli_validity']['event'])
         if not psh_utility.verifyPshCliTokenValidity():
-            outputError(PSH_COMMON_MESSAGES['psh_cli_validity']['event'], PSH_COMMON_MESSAGES['psh_cli_validity']['fail_message'])
+            outputError(PSH_COMMON_MESSAGES['psh_cli_validity']['event'],
+                        PSH_COMMON_MESSAGES['psh_cli_validity']['fail_message'])
             return False
         else:
             logging.info('{}{}{}'.format(CBOLD, PSH_COMMON_MESSAGES['psh_cli_validity']['success_message'], CRESET))
@@ -104,7 +105,7 @@ def trigger_autoupdate():
                     return outputError(event, message)
                 else:
                     reactivatePruneBranches = True
-                    logging.info('{}{}{}'.format(CBOLD,"'prune_branches' disabled", CRESET))
+                    logging.info('{}{}{}'.format(CBOLD, "'prune_branches' disabled", CRESET))
                     message = " I have disable 'prune_branches' so I can create the branch and continue running "
                     message += "updates. I will attempt to re-enable 'prune_branches' in your integration after the "
                     message += "update process on branch '{}' has finished and been pushed to your remote git "
@@ -170,6 +171,7 @@ def trigger_autoupdate():
         command = "platform integration:update {} --prune-branches=true".format(integrationID)
         pruneBranchesRun = psh_utility.runCommand(command)
         return pruneBranchesRun['result']
+
     def getGitIntPruneBranchProp(integrationID, updateBranchName):
         """
         Retrieves the status of 'prune_branches' property in the git integration
@@ -308,7 +310,7 @@ def trigger_autoupdate():
         logging.info(
             "Running source operation '{}' against environment '{}'... ".format(sourceoperation, targetEnvironment))
         command = "platform source-operation:run {} --environment {} --wait".format(sourceoperation,
-                                                                                                targetEnvironment)
+                                                                                    targetEnvironment)
         sourceOpRun = psh_utility.runCommand(command)
 
         if sourceOpRun['result']:
