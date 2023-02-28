@@ -38,6 +38,7 @@ def trigger_autoupdate():
         :return: bool
         """
         updateBranchPreviousStatus = "inactive"
+        reactivatePruneBranches = False
         logging.info("Using Source Ops Toolkit v{}".format(SOURCE_OP_TOOLS_VERSION))
         logging.info("Beginning set up to perform the source operation update...")
 
@@ -102,10 +103,12 @@ def trigger_autoupdate():
                     message += " Exiting."
                     return outputError(event, message)
                 else:
+                    reactivatePruneBranches = True
                     logging.info('{}{}{}'.format(CBOLD,"'prune_branches' disabled", CRESET))
                     message = " I have disable 'prune_branches' so I can create the branch and continue running "
-                    message += "updates. You will need to re-enable 'prune_branches' in your integration after you "
-                    message += "manually push the branch '{}' to your remote git repository.".format(updateBranchName)
+                    message += "updates. I will attempt to re-enable 'prune_branches' in your integration after the "
+                    message += "update process on branch '{}' has finished and been pushed to your remote git "
+                    message += "repository.".format(updateBranchName)
                     logging.info(message)
 
             if not createBranch(updateBranchName, productionBranchName):
@@ -140,9 +143,30 @@ def trigger_autoupdate():
         else:
             logging.info("Branch {} was previously active so we'll leave it alone.".format(updateBranchName))
 
+        if reactivatePruneBranches:
+            # we need to reactivate the prune branches setting
+            if not enableGitIntPruneBranches(integrationID):
+                event = "Trying to update 'prune_branches' to true on git integration {}".format(integrationID)
+                message = "I was unable to re-enable the 'prune_branches' setting for git integration {}.".format(
+                    integrationID)
+                message += " You will need to manually update the integration and re-enable this setting. "
+
+                outputError(event, message)
+            else:
+                logging.info("'prune_branches' for integration {} was successfully re-enabled.".format(integrationID))
+
         logging.info("{}{}{}".format(CBOLD, "Auto update of {} environment complete.".format(updateBranchName), CRESET))
         return True
 
+    def enableGitIntPruneBranches(integrationID):
+        """
+        Attempts to re-enable the 'prune_branches' property in the git integration
+        :param integrationID: The git integration ID
+        :return: bool
+        """
+        command = "platform integration:update {} --prune-branches=true".format(integrationID)
+        pruneBranchesRun = psh_utility.runCommand(command)
+        return pruneBranchesRun['result']
     def getGitIntPruneBranchProp(integrationID, updateBranchName):
         """
         Retrieves the status of 'prune_branches' property in the git integration
