@@ -106,7 +106,7 @@ def trigger_autoupdate():
                 else:
                     reactivatePruneBranches = True
                     logging.info('{}{}{}'.format(CBOLD, "'prune_branches' disabled", CRESET))
-                    message = " I have disable 'prune_branches' so I can create the branch and continue running "
+                    message = " I have disabled 'prune_branches' so I can create the branch and continue running "
                     message += "updates. I will attempt to re-enable 'prune_branches' in your integration after the "
                     message += "update process on branch '{}' has finished and been pushed to ".format(updateBranchName)
                     message += "your remote git repository."
