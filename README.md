@@ -4,7 +4,7 @@ A collection of scripts to assist with Source Operations actions
 The setup file will handle installation and running of the update script. 
 To run the setup file: 
 
-The setup script it written for bash so if your default shell is dash, you can do either
+The setup script is written for bash so if your default shell is dash, you can do either
 ```shell
 bash -c "bash <(curl -fsS https://raw.githubusercontent.com/platformsh/source-operations/main/setup.sh) <command>"
 ```

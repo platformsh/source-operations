@@ -4,13 +4,13 @@ import os
 import subprocess
 from psh_logging import outputError
 
-SOURCE_OP_TOOLS_VERSION = '0.2.8'
+SOURCE_OP_TOOLS_VERSION = '0.3.0'
 PSH_COMMON_MESSAGES = {
     'psh_cli': {
         'event': 'Checking for the Platform.sh CLI tool',
         'fail_message': """
             The Platform.sh CLI tool is not installed. Please add its installation to the build section of your
-            .platform.app.yaml. See https://github.com/platformsh/platformsh-cli#installation for more information
+            .platform.app.yaml. See https://github.com/platformsh/cli#install for more information
         """,
         'success_message': 'The Platform.sh CLI tool is installed.'
     },

@@ -38,6 +38,7 @@ def trigger_autoupdate():
         :return: bool
         """
         updateBranchPreviousStatus = "inactive"
+        reactivatePruneBranches = False
         logging.info("Using Source Ops Toolkit v{}".format(SOURCE_OP_TOOLS_VERSION))
         logging.info("Beginning set up to perform the source operation update...")
 
@@ -61,7 +62,8 @@ def trigger_autoupdate():
         # But is the cli token valid?
         logging.info(PSH_COMMON_MESSAGES['psh_cli_validity']['event'])
         if not psh_utility.verifyPshCliTokenValidity():
-            outputError(PSH_COMMON_MESSAGES['psh_cli_validity']['event'], PSH_COMMON_MESSAGES['psh_cli_validity']['fail_message'])
+            outputError(PSH_COMMON_MESSAGES['psh_cli_validity']['event'],
+                        PSH_COMMON_MESSAGES['psh_cli_validity']['fail_message'])
             return False
         else:
             logging.info('{}{}{}'.format(CBOLD, PSH_COMMON_MESSAGES['psh_cli_validity']['success_message'], CRESET))
@@ -102,10 +104,12 @@ def trigger_autoupdate():
                     message += " Exiting."
                     return outputError(event, message)
                 else:
-                    logging.info('{}{}{}'.format(CBOLD,"'prune_branches' disabled", CRESET))
-                    message = " I have disable 'prune_branches' so I can create the branch and continue running "
-                    message += "updates. You will need to re-enable 'prune_branches' in your integration after you "
-                    message += "manually push the branch '{}' to your remote git repository.".format(updateBranchName)
+                    reactivatePruneBranches = True
+                    logging.info('{}{}{}'.format(CBOLD, "'prune_branches' disabled", CRESET))
+                    message = " I have disabled 'prune_branches' so I can create the branch and continue running "
+                    message += "updates. I will attempt to re-enable 'prune_branches' in your integration after the "
+                    message += "update process on branch '{}' has finished and been pushed to ".format(updateBranchName)
+                    message += "your remote git repository."
                     logging.info(message)
 
             if not createBranch(updateBranchName, productionBranchName):
@@ -140,8 +144,33 @@ def trigger_autoupdate():
         else:
             logging.info("Branch {} was previously active so we'll leave it alone.".format(updateBranchName))
 
+        if reactivatePruneBranches:
+            message = "'prune_branches' was enabled previously; I had to disable it temporarily. Attempting to "
+            message += " re-enable it now..."
+            logging.info(message)
+            # we need to reactivate the prune branches setting
+            if not enableGitIntPruneBranches(integrationID):
+                event = "Trying to update 'prune_branches' to true on git integration {}".format(integrationID)
+                message = "I was unable to re-enable the 'prune_branches' setting for git integration {}.".format(
+                    integrationID)
+                message += " You will need to manually update the integration and re-enable this setting. "
+
+                outputError(event, message)
+            else:
+                logging.info("'prune_branches' for integration {} was successfully re-enabled.".format(integrationID))
+
         logging.info("{}{}{}".format(CBOLD, "Auto update of {} environment complete.".format(updateBranchName), CRESET))
         return True
+
+    def enableGitIntPruneBranches(integrationID):
+        """
+        Attempts to re-enable the 'prune_branches' property in the git integration
+        :param integrationID: The git integration ID
+        :return: bool
+        """
+        command = "platform integration:update {} --prune-branches=true".format(integrationID)
+        pruneBranchesRun = psh_utility.runCommand(command)
+        return pruneBranchesRun['result']
 
     def getGitIntPruneBranchProp(integrationID, updateBranchName):
         """
@@ -242,21 +271,6 @@ def trigger_autoupdate():
 
         return prodEnvironments[0]
 
-    def syncBranch(updateBranch, productionBranch):
-        """
-        Syncs the code from production down to our update branch before we run the auto-update source operation
-        :param string updateBranch: update branch name
-        :param string productionBranch: production branch name
-        :return: bool
-        """
-        logging.info("Syncing branch {} with {}...".format(updateBranch, productionBranch))
-        command = "platform sync -e {} --yes --wait code 2>/dev/null".format(updateBranch)
-        syncRun = psh_utility.runCommand(command)
-        if syncRun['result']:
-            logging.info("{}{}{}".format(CBOLD, "Syncing complete.", CRESET))
-        else:
-            return outputError(command, syncRun['message'])
-
     def deactivateUpdateBranch(targetEnvironment):
         """
         Sets the environment back to inactive status (ie Deletes the *environment* but not the git branch)
@@ -281,7 +295,7 @@ def trigger_autoupdate():
         logging.info(
             "Running source operation '{}' against environment '{}'... ".format(sourceoperation, targetEnvironment))
         command = "platform source-operation:run {} --environment {} --wait".format(sourceoperation,
-                                                                                                targetEnvironment)
+                                                                                    targetEnvironment)
         sourceOpRun = psh_utility.runCommand(command)
 
         if sourceOpRun['result']:
@@ -387,6 +401,12 @@ def trigger_autoupdate():
         return True
 
     def syncBranch(updateBranchName, productionBranchName):
+        """
+        Syncs the code from production down to our update branch before we run the auto-update source operation
+        :param string updateBranchName: update branch name
+        :param string productionBranchName: production branch name
+        :return: bool
+        """
         event = "Sync{} branch {} with {}"
         command = "platform sync -e {} --yes --wait code 2>/dev/null".format(updateBranchName)
         logging.info(event.format('ing', updateBranchName, productionBranchName))
