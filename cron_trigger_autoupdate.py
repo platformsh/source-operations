@@ -271,21 +271,6 @@ def trigger_autoupdate():
 
         return prodEnvironments[0]
 
-    def syncBranch(updateBranch, productionBranch):
-        """
-        Syncs the code from production down to our update branch before we run the auto-update source operation
-        :param string updateBranch: update branch name
-        :param string productionBranch: production branch name
-        :return: bool
-        """
-        logging.info("Syncing branch {} with {}...".format(updateBranch, productionBranch))
-        command = "platform sync -e {} --yes --wait code 2>/dev/null".format(updateBranch)
-        syncRun = psh_utility.runCommand(command)
-        if syncRun['result']:
-            logging.info("{}{}{}".format(CBOLD, "Syncing complete.", CRESET))
-        else:
-            return outputError(command, syncRun['message'])
-
     def deactivateUpdateBranch(targetEnvironment):
         """
         Sets the environment back to inactive status (ie Deletes the *environment* but not the git branch)
@@ -416,6 +401,12 @@ def trigger_autoupdate():
         return True
 
     def syncBranch(updateBranchName, productionBranchName):
+        """
+        Syncs the code from production down to our update branch before we run the auto-update source operation
+        :param string updateBranchName: update branch name
+        :param string productionBranchName: production branch name
+        :return: bool
+        """
         event = "Sync{} branch {} with {}"
         command = "platform sync -e {} --yes --wait code 2>/dev/null".format(updateBranchName)
         logging.info(event.format('ing', updateBranchName, productionBranchName))
