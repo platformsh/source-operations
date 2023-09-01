@@ -4,7 +4,7 @@ import os
 import subprocess
 from psh_logging import outputError
 
-SOURCE_OP_TOOLS_VERSION = '0.3.0'
+SOURCE_OP_TOOLS_VERSION = '0.3.1'
 PSH_COMMON_MESSAGES = {
     'psh_cli': {
         'event': 'Checking for the Platform.sh CLI tool',
