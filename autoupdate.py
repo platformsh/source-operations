@@ -17,7 +17,7 @@ def main():
         'Gemfile': {'command': 'bundle update --all', 'lock': 'Gemfile.lock'},
         'go.mod': {'command': 'go get -u all', 'lock': 'go.sum'},
         'package-lock.json': {'command': 'npm update', 'lock': 'package-lock.json'},
-        'yarn.lock': {'command': 'yarn upgrade', 'lock': 'yarn.lock'}
+        'yarn.lock': {'command': 'hash yarn >/dev/null 2>&1 && yarn upgrade || corepack yarn upgrade', 'lock': 'yarn.lock'}
     }
 
     appFile = '.platform.app.yaml'
