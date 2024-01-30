@@ -5,6 +5,7 @@ import os
 from psh_logging import outputError
 from psh_utility import runCommand, SOURCE_OP_TOOLS_VERSION
 
+
 def main():
     """
 
@@ -17,7 +18,8 @@ def main():
         'Gemfile': {'command': 'bundle update --all', 'lock': 'Gemfile.lock'},
         'go.mod': {'command': 'go get -u all', 'lock': 'go.sum'},
         'package-lock.json': {'command': 'npm update', 'lock': 'package-lock.json'},
-        'yarn.lock': {'command': 'hash yarn >/dev/null 2>&1 && yarn upgrade || corepack yarn upgrade', 'lock': 'yarn.lock'}
+        'yarn.lock': {'command': 'hash yarn >/dev/null 2>&1 && yarn upgrade || corepack yarn upgrade',
+                      'lock': 'yarn.lock package.json'}
     }
 
     appFile = '.platform.app.yaml'
@@ -85,23 +87,40 @@ def main():
         logging.info("Seeing if there are any updates to commit.")
         procStatus = runCommand('git status --porcelain=1', appPath)
 
-        if not procStatus['message'] or updaters[dependencyFile]['lock'] not in procStatus['message']:
-            logging.info("No updates available, nothing to commit. Exiting...")
+        if not procStatus['message']:
             # no updates so nothing to add, not a failure, but we are done
+            logging.info("No updates available, nothing to commit. Exiting...")
             return True
 
-        # one more, just need to add the file
-        # we don't really care about the path if it's in the current directory
-        lockPath = (dependencyFilePath, '')[dependencyFilePath == './']
-        lockFileLocation = os.path.join(dependencyFilePath, updaters[dependencyFile]['lock'])
-        logging.info("Updates are available, adding {}...".format(lockFileLocation))
-        procAdd = runCommand('git add {}'.format(lockFileLocation), appPath)
+        updatedFiles = []
 
-        if not procAdd['result']:
-            return outputError('git add', procAdd['message'])
-        else:
-            gitCommitMsg += '\nAdded updated {}'.format(lockFileLocation)
-            doCommit = True
+        possibleUpdates = updaters[dependencyFile]['lock'].split()
+        for updatedFile in possibleUpdates:
+            if updatedFile in procStatus['message']:
+                updatedFiles.append(updatedFile)
+
+        if 1 > len(updatedFiles):
+            # @todo _something_ updated, but it wasn't anything we *expected*. Should we do anything else besides
+            # provide a message an exit?
+            logging.info("Something updated but nothing we were expecting.")
+            logging.info(procStatus['message'])
+            logging.info("Exiting...")
+            return True
+
+        # one more, just need to add the file(s)
+        # we don't really care about the path if it's in the current directory
+        for toAdd in updatedFiles:
+            lockPath = lockFileLocation = procAdd = None
+            lockPath = (dependencyFilePath, '')[dependencyFilePath == './']
+            lockFileLocation = os.path.join(dependencyFilePath, toAdd)
+            logging.info("Updates are available, adding {}...".format(lockFileLocation))
+            procAdd = runCommand('git add {}'.format(lockFileLocation), appPath)
+
+            if not procAdd['result']:
+                return outputError('git add', procAdd['message'])
+            else:
+                gitCommitMsg += '\nAdded updated {}'.format(lockFileLocation)
+                doCommit = True
 
     if doCommit:
         cmd = 'git commit -m "{}"'.format(gitCommitMsg)
