@@ -44,7 +44,7 @@ def trigger_autoupdate():
 
         # Do we have a PSH CLI Token set up?
         logging.info(PSH_COMMON_MESSAGES['psh_cli_token']['event'])
-        if not psh_utility.verifyPshCliToken():
+        if not psh_utility.verifyVendorCliToken():
             outputError(PSH_COMMON_MESSAGES['psh_cli_token']['event'],
                         PSH_COMMON_MESSAGES['psh_cli_token']['fail_message'])
             return False
@@ -53,7 +53,7 @@ def trigger_autoupdate():
 
         # Is the psh cli installed?
         logging.info(PSH_COMMON_MESSAGES['psh_cli']['event'])
-        if not psh_utility.verifyPshCliInstalled():
+        if not psh_utility.verifyVendorCliInstalled():
             outputError(PSH_COMMON_MESSAGES['psh_cli']['event'], PSH_COMMON_MESSAGES['psh_cli']['fail_message'])
             return False
         else:
@@ -168,8 +168,8 @@ def trigger_autoupdate():
         :param integrationID: The git integration ID
         :return: bool
         """
-        command = "platform integration:update {} --prune-branches=true".format(integrationID)
-        pruneBranchesRun = psh_utility.runCommand(command)
+        command = "integration:update {} --prune-branches=true".format(integrationID)
+        pruneBranchesRun = psh_utility.runVendorCommand(command)
         return pruneBranchesRun['result']
 
     def getGitIntPruneBranchProp(integrationID, updateBranchName):
@@ -180,8 +180,8 @@ def trigger_autoupdate():
         :return: bool
         """
         # now we need to get integration details
-        command = "platform integration:get {} --property prune_branches".format(integrationID)
-        integrationGetRun = psh_utility.runCommand(command)
+        command = "integration:get {} --property prune_branches".format(integrationID)
+        integrationGetRun = psh_utility.runVendorCommand(command)
         # @todo, what should we do here if the retrieval of the integration fails? we're in a situation where things
         # *might* fail, but might not...
         if not integrationGetRun['result']:
@@ -208,8 +208,8 @@ def trigger_autoupdate():
         """
         # so we know prune_branches is true, let's try to change it
 
-        command = "platform integration:update {} --prune-branches=false".format(integrationID)
-        pruneBranchesRun = psh_utility.runCommand(command)
+        command = "integration:update {} --prune-branches=false".format(integrationID)
+        pruneBranchesRun = psh_utility.runVendorCommand(command)
         return pruneBranchesRun['result']
 
     def getGitIntegrationID():
@@ -223,8 +223,8 @@ def trigger_autoupdate():
         """
         import csv
         validGitIntegrations = ['github', 'gitlab', 'bitbucket']
-        command = "platform integration:list --columns=ID,Type --format=csv --no-header"
-        integrationRun = psh_utility.runCommand(command)
+        command = "integration:list --columns=ID,Type --format=csv --no-header"
+        integrationRun = psh_utility.runVendorCommand(command)
         # it's possible there are zero integrations which will return an exit code of 1/false, but we dont care
         if not integrationRun['result']:
             return ""
@@ -253,9 +253,9 @@ def trigger_autoupdate():
         handle it? an empty string should register as a false so it would work
         :return: bool|string: Name of the production branch
         """
-        command = "platform environment:list --type production --pipe 2>/dev/null"
+        command = "environment:list --type production --pipe 2>/dev/null"
         event = "Retrieving production environments"
-        prodBranchRun = psh_utility.runCommand(command)
+        prodBranchRun = psh_utility.runVendorCommand(command)
         if not prodBranchRun['result'] or "" == prodBranchRun['message'].strip():
             message = "I was unable to retrieve a list of production type branches for this project. Please create a"
             message += " ticket and ask that it be assigned to the DevRel team.\n\n"
@@ -278,8 +278,8 @@ def trigger_autoupdate():
         :return: bool
         """
         logging.info("Deactivating environment {}".format(targetEnvironment))
-        command = "platform e:delete {} --no-delete-branch --no-wait --yes 2>/dev/null".format(targetEnvironment)
-        deactivateRun = psh_utility.runCommand(command)
+        command = "e:delete {} --no-delete-branch --no-wait --yes 2>/dev/null".format(targetEnvironment)
+        deactivateRun = psh_utility.runVendorCommand(command)
         if deactivateRun['result']:
             logging.info("{}{}{}".format(CBOLD, "Environment {} deactivated".format(targetEnvironment), CRESET))
         else:
@@ -294,9 +294,9 @@ def trigger_autoupdate():
         """
         logging.info(
             "Running source operation '{}' against environment '{}'... ".format(sourceoperation, targetEnvironment))
-        command = "platform source-operation:run {} --environment {} --wait".format(sourceoperation,
+        command = "source-operation:run {} --environment {} --wait".format(sourceoperation,
                                                                                     targetEnvironment)
-        sourceOpRun = psh_utility.runCommand(command)
+        sourceOpRun = psh_utility.runVendorCommand(command)
 
         if sourceOpRun['result']:
             logging.info("{}{}{}".format(CBOLD, "Source operation completed.", CRESET))
@@ -328,8 +328,8 @@ def trigger_autoupdate():
         action = 'sync'
         # kill two birds with one stone here: if it doesn't exist, then we'll get an error & know we need to create it.
         # If it exists, then we'll know if we need to sync it
-        command = "platform environment:info status -e {} 2>/dev/null".format(updateBranchName)
-        branchStatusRun = psh_utility.runCommand(command)
+        command = "environment:info status -e {} 2>/dev/null".format(updateBranchName)
+        branchStatusRun = psh_utility.runVendorCommand(command)
 
         if not branchStatusRun['result']:
             action = 'create'
@@ -344,9 +344,9 @@ def trigger_autoupdate():
         :param updateBranchName: name of branch to activate
         :return: bool
         """
-        command = "platform environment:activate {} --wait --yes 2>/dev/null".format(updateBranchName)
+        command = "environment:activate {} --wait --yes 2>/dev/null".format(updateBranchName)
         logging.info("Activating branch {}...".format(updateBranchName))
-        activateBranchRun = psh_utility.runCommand(command)
+        activateBranchRun = psh_utility.runVendorCommand(command)
         if not activateBranchRun['result']:
             event = "Activating branch {}".format(updateBranchName)
             message = "I encountered an error while attempting to activate the branch {}. Please ".format(
@@ -366,9 +366,9 @@ def trigger_autoupdate():
         """
         event = "Creating environment {}".format(updateBranchName)
         logging.info("{}...".format(event))
-        command = "platform e:branch {} {} --no-clone-parent --force 2>/dev/null".format(updateBranchName,
+        command = "e:branch {} {} --no-clone-parent --force 2>/dev/null".format(updateBranchName,
                                                                                          productionBranchName)
-        createBranchRun = psh_utility.runCommand(command)
+        createBranchRun = psh_utility.runVendorCommand(command)
         if not createBranchRun['result']:
             event = "Failure {}".format(event)
             message = "I encountered an error while attempting to create the branch {}.".format(updateBranchName)
@@ -386,8 +386,8 @@ def trigger_autoupdate():
         :param productionBranchName: Name of the production branch
         :return: bool
         """
-        command = "platform environment:info parent -e {} 2>/dev/null".format(updateBranchName)
-        branchAncestoryRun = psh_utility.runCommand(command)
+        command = "environment:info parent -e {} 2>/dev/null".format(updateBranchName)
+        branchAncestoryRun = psh_utility.runVendorCommand(command)
         if not branchAncestoryRun['result'] or productionBranchName != branchAncestoryRun['message'].strip():
             event = "Update Branch {} is not a direct descendant of {}".format(updateBranchName, productionBranchName)
             message = "The targeted update branch '{}', is not a direct descendant of the production branch".format(
@@ -408,9 +408,9 @@ def trigger_autoupdate():
         :return: bool
         """
         event = "Sync{} branch {} with {}"
-        command = "platform sync -e {} --yes --wait code 2>/dev/null".format(updateBranchName)
+        command = "sync -e {} --yes --wait code 2>/dev/null".format(updateBranchName)
         logging.info(event.format('ing', updateBranchName, productionBranchName))
-        syncRun = psh_utility.runCommand(command)
+        syncRun = psh_utility.runVendorCommand(command)
 
         if not syncRun['result']:
             failedEvent = "Failed to {}".format(event.format('', updateBranchName, productionBranchName))
