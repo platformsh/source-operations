@@ -32,6 +32,44 @@ PSH_COMMON_MESSAGES = {
     }
 }
 
+validVendors = ['platform', 'upsun']
+vendorEnvVarName = 'VENDOR'
+defaultVendor = 'platform'
+
+
+def determineVendor():
+    """
+    Determines the vendorized cli to use based on the value contained in the environment variable as defined by
+    @see vendorEnvVarName
+    :return: string
+    """
+    vendor = os.getenv(vendorEnvVarName, 'platform')
+    if vendor not in validVendors:
+        vendor = defaultVendor
+        message = "The value you've set for {} is not valid. Must be one of: {}".format(vendorEnvVarName,
+                                                                                        ', '.join(validVendors))
+        outputError('Determining Vendor CLI', message)
+
+    return vendor.lower()
+
+
+# @todo is there a way
+VENDOR = determineVendor()
+
+
+def runVendorCommand(command, rcwd=None):
+    """
+    Runs a vendor cli subprocess on the system.
+    :param string|list command: Command to be run as a string or as a list
+    :param string rcwd: path to where we need the process to be run
+    :return:dict {result: boolean, message: strdout|stderr }
+    """
+    if isinstance(command, list):
+        command = list(map(lambda cmd: '{} {}'.format(VENDOR.lower(), cmd), command))
+    else:
+        command = '{} {}'.format(VENDOR.lower(), command)
+    return runCommand(command, rcwd)
+
 
 def runCommand(command, rcwd=None):
     """
@@ -40,7 +78,8 @@ def runCommand(command, rcwd=None):
     :param string rcwd: path to where we need the process to be run
     :return: dict {result: boolean, message: strdout|stderr }
     """
-    procUpdate = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, cwd=rcwd)
+    procUpdate = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                  universal_newlines=True, cwd=rcwd)
     output, procerror = procUpdate.communicate()
 
     if 0 == procUpdate.returncode:
