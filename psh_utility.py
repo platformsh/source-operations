@@ -33,6 +33,7 @@ PSH_COMMON_MESSAGES = {
 }
 
 validVendors = ['platform', 'upsun']
+validVendorTokenMap = {"platform": "PLATFORMSH_CLI_TOKEN", "upsun": "UPSUN_CLI_TOKEN"}
 vendorEnvVarName = 'VENDOR'
 defaultVendor = 'platform'
 
@@ -95,18 +96,18 @@ def runCommand(command, rcwd=None):
     return {"result": returnStatement, "message": message}
 
 
-def verifyPshCliInstalled():
+def verifyVendorCliInstalled():
     """
     Checks to make sure the psh cli tool is installed
     :return: bool
     @todo since we've moved the messaging, is this one needed anymore?
     """
-    procResult = runCommand("which platform")
+    procResult = runCommand("which {}".format(VENDOR))
     return procResult['result']
 
 
-def verifyPshCliToken():
-    pshToken = os.getenv('PLATFORMSH_CLI_TOKEN', None)
+def verifyVendorCliToken():
+    pshToken = os.getenv(validVendorTokenMap[VENDOR], None)
     if pshToken is None:
         return False
     else:
