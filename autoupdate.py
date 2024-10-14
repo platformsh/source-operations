@@ -16,7 +16,7 @@ def main():
         'Pipfile': {'command': 'pipenv update', 'lock': 'Pipfile.lock'},
         'poetry.lock': {'command': 'poetry update --lock', 'lock': 'poetry.lock'},
         'Gemfile': {'command': 'bundle update --all', 'lock': 'Gemfile.lock'},
-        'go.mod': {'command': 'go get -u ./… && go mod tidy', 'lock': 'go.sum'},
+        'go.mod': {'command': 'go get -u ./... && go mod tidy', 'lock': 'go.sum'},
         'package-lock.json': {'command': 'npm update', 'lock': 'package-lock.json'},
         'yarn.lock': {'command': 'hash yarn >/dev/null 2>&1 && yarn upgrade || corepack yarn upgrade',
                       'lock': 'yarn.lock package.json'}
